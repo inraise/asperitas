@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	adapterhttp "github.com/inraise/asperitas/internal/adapter/http"
+	adapterhttp "github.com/inraise/asperitas/internal/adapter/handler/http"
 	"github.com/inraise/asperitas/internal/adapter/repository/localstorage"
 	"github.com/inraise/asperitas/internal/storage"
 	"github.com/inraise/asperitas/internal/usecase"
@@ -23,12 +23,19 @@ func main() {
 	postsUseCase := usecase.NewPostsUseCase(postsRepo)
 	postsHandler := adapterhttp.NewPostsHandler(ctx, postsUseCase)
 
+	postRepo := localstorage.NewMemoryPostRepo(memDB)
+	postUseCase := usecase.NewPostUseCase(postRepo)
+	postHandler := adapterhttp.NewPostHandler(ctx, postUseCase)
+
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	mux.Handle("/", webHandler)
+
 	mux.Handle("/api/posts", postsHandler)
 	mux.Handle("/api/posts/", postsHandler)
+
+	mux.Handle("/api/post/{postId}", postHandler)
 
 	fmt.Println("server start")
 	if err := http.ListenAndServe(":8080", mux); err != nil {

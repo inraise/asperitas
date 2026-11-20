@@ -8,25 +8,25 @@ import (
 	"github.com/inraise/asperitas/internal/usecase"
 )
 
-type TaskHandler struct {
-	uc  *usecase.TaskUseCase
+type PostsHandler struct {
+	uc  *usecase.PostsUseCase
 	ctx context.Context
 }
 
-func NewTaskHandler(ctx context.Context, uc *usecase.TaskUseCase) *TaskHandler {
-	return &TaskHandler{uc: uc, ctx: ctx}
+func NewPostsHandler(ctx context.Context, uc *usecase.PostsUseCase) *PostsHandler {
+	return &PostsHandler{uc: uc, ctx: ctx}
 }
 
-func (h *TaskHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *PostsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		tasksList, err := h.uc.GetPosts(h.ctx)
+		postsList, err := h.uc.GetPosts(h.ctx)
 		if err != nil {
 			writeJSON(w, 500, err)
 			return
 		}
 
-		writeJSON(w, 200, tasksList)
+		writeJSON(w, 200, postsList)
 	default:
 		http.Error(w, "method not allowed", 405)
 	}

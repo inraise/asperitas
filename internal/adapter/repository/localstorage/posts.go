@@ -25,3 +25,17 @@ func (r *MemoryPostsRepo) GetPosts(_ context.Context) (domain.PostList, error) {
 	copy(out, r.db.Posts)
 	return out, nil
 }
+
+func (r *MemoryPostsRepo) GetByCategory(ctx context.Context, category string) (domain.PostList, error) {
+	r.db.Mu.RLock()
+	defer r.db.Mu.RUnlock()
+
+	out := make(domain.PostList, 0, len(r.db.Posts))
+	for _, p := range r.db.Posts {
+		if p.Category == category {
+			out = append(out, p)
+		}
+	}
+
+	return out, nil
+}

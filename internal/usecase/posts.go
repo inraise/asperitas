@@ -10,6 +10,7 @@ import (
 
 type PostsRepository interface {
 	GetPosts(ctx context.Context) (domain.PostList, error)
+	GetByCategory(ctx context.Context, category string) (domain.PostList, error)
 }
 
 type PostsUseCase struct {
@@ -22,6 +23,18 @@ func NewPostsUseCase(repo PostsRepository) *PostsUseCase {
 
 func (u *PostsUseCase) GetPosts(ctx context.Context) (domain.PostList, error) {
 	postsList, err := u.repo.GetPosts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("usecase error: %w", err)
+	}
+
+	sort.Slice(postsList, func(i, j int) bool {
+		return postsList[i].Score > postsList[j].Score
+	})
+	return postsList, err
+}
+
+func (u *PostsUseCase) GetByCategory(ctx context.Context, category string) (domain.PostList, error) {
+	postsList, err := u.repo.GetByCategory(ctx, category)
 	if err != nil {
 		return nil, fmt.Errorf("usecase error: %w", err)
 	}

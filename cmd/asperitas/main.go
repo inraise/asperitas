@@ -32,8 +32,9 @@ func main() {
 
 	mux.Handle("/", webHandler)
 
-	mux.Handle("/api/posts", postsHandler)
-	mux.Handle("/api/posts/", postsHandler)
+	mux.HandleFunc("/api/posts", postsHandler.GetAll)
+	mux.HandleFunc("/api/posts/", postsHandler.GetAll)
+	mux.HandleFunc("/api/posts/{category}", postsHandler.GetByCategory)
 
 	mux.Handle("/api/post/{postId}", postHandler)
 

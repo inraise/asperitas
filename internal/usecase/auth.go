@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 
 type UsersRepository interface {
 	Create(ctx context.Context, username string, passwordHash []byte) (domain.User, error)
+	GetByUsername(ctx context.Context, username string) (domain.User, []byte, error)
 }
 
 type AuthUseCase struct {
@@ -53,4 +55,21 @@ func (u *AuthUseCase) issueToken(user domain.User) (string, error) {
 		},
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, cl).SignedString(u.secret)
+}
+
+func (u *AuthUseCase) Login(ctx context.Context, c domain.Credentials) (string, error) {
+	user, hash, err := u.repo.GetByUsername(ctx, c.Username)
+	if err != nil {
+		return "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword(hash, []byte(c.Password)); err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) ||
+			errors.Is(err, bcrypt.ErrPasswordTooLong) {
+			return "", domain.ErrInvalidPassword
+		}
+		return "", fmt.Errorf("compare password: %w", err)
+	}
+
+	return u.issueToken(user)
 }

@@ -50,6 +50,7 @@ func main() {
 	mux.Handle("/api/post/{postId}", postHandler)
 	
 	mux.HandleFunc("POST /api/register", authHandler.Register)
+	mux.HandleFunc("POST /api/login", authHandler.Login)
 
 	fmt.Println("server start")
 	if err := http.ListenAndServe(":8080", mux); err != nil {

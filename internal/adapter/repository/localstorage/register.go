@@ -37,3 +37,14 @@ func (r *MemoryUsersRepo) Create(_ context.Context, username string, hash []byte
 	r.db.Users[key] = storage.UserRecord{User: user, PasswordHash: hash}
 	return user, nil
 }
+
+func (r *MemoryUsersRepo) GetByUsername(_ context.Context, username string) (domain.User, []byte, error) {
+	r.db.Mu.RLock()
+	defer r.db.Mu.RUnlock()
+
+	rec, ok := r.db.Users[strings.ToLower(username)]
+	if !ok {
+		return domain.User{}, nil, domain.ErrUserNotFound
+	}
+	return rec.User, rec.PasswordHash, nil
+}

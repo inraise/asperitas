@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	adapterhttp "github.com/inraise/asperitas/internal/adapter/handler/http"
 	"github.com/inraise/asperitas/internal/adapter/repository/localstorage"
@@ -17,7 +19,16 @@ func main() {
 	memDB := storage.NewStorage()
 	mux := http.NewServeMux()
 
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET is not set")
+	}
+
 	webHandler := adapterhttp.NewWebHandler()
+
+	usersRepo := localstorage.NewMemoryUsersRepo(memDB)
+	authUseCase := usecase.NewAuthUseCase(usersRepo, []byte(secret))
+	authHandler := adapterhttp.NewAuthHandler(authUseCase)
 
 	postsRepo := localstorage.NewMemoryPostsRepo(memDB)
 	postsUseCase := usecase.NewPostsUseCase(postsRepo)
@@ -37,6 +48,8 @@ func main() {
 	mux.HandleFunc("/api/posts/{category}", postsHandler.GetByCategory)
 
 	mux.Handle("/api/post/{postId}", postHandler)
+	
+	mux.HandleFunc("POST /api/register", authHandler.Register)
 
 	fmt.Println("server start")
 	if err := http.ListenAndServe(":8080", mux); err != nil {

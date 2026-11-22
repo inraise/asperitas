@@ -1,0 +1,39 @@
+package localstorage
+
+import (
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"strings"
+
+	"github.com/inraise/asperitas/internal/domain"
+	"github.com/inraise/asperitas/internal/storage"
+)
+
+type MemoryUsersRepo struct {
+	db *storage.Storage
+}
+
+func NewMemoryUsersRepo(db *storage.Storage) *MemoryUsersRepo {
+	return &MemoryUsersRepo{db: db}
+}
+
+func (r *MemoryUsersRepo) Create(_ context.Context, username string, hash []byte) (domain.User, error) {
+	key := strings.ToLower(username)
+
+	r.db.Mu.Lock()
+	defer r.db.Mu.Unlock()
+
+	if _, exists := r.db.Users[key]; exists {
+		return domain.User{}, domain.ErrUsernameTaken
+	}
+
+	b := make([]byte, 12)
+	if _, err := rand.Read(b); err != nil {
+		return domain.User{}, err
+	}
+
+	user := domain.User{Id: hex.EncodeToString(b), Username: username}
+	r.db.Users[key] = storage.UserRecord{User: user, PasswordHash: hash}
+	return user, nil
+}

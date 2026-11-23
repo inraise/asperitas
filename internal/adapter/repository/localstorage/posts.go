@@ -3,15 +3,15 @@ package localstorage
 import (
 	"context"
 
-	"github.com/inraise/asperitas/internal/domain"
-	"github.com/inraise/asperitas/internal/storage"
+	"github.com/inraise/asperitas/internal/core/domain"
+	memorystorage "github.com/inraise/asperitas/internal/core/storage"
 )
 
 type MemoryPostsRepo struct {
-	db *storage.Storage
+	db *memorystorage.Storage
 }
 
-func NewMemoryPostsRepo(db *storage.Storage) *MemoryPostsRepo {
+func NewMemoryPostsRepo(db *memorystorage.Storage) *MemoryPostsRepo {
 	return &MemoryPostsRepo{
 		db: db,
 	}

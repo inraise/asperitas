@@ -6,15 +6,15 @@ import (
 	"encoding/hex"
 	"strings"
 
-	"github.com/inraise/asperitas/internal/domain"
-	"github.com/inraise/asperitas/internal/storage"
+	"github.com/inraise/asperitas/internal/core/domain"
+	memorystorage "github.com/inraise/asperitas/internal/core/storage"
 )
 
 type MemoryUsersRepo struct {
-	db *storage.Storage
+	db *memorystorage.Storage
 }
 
-func NewMemoryUsersRepo(db *storage.Storage) *MemoryUsersRepo {
+func NewMemoryUsersRepo(db *memorystorage.Storage) *MemoryUsersRepo {
 	return &MemoryUsersRepo{db: db}
 }
 
@@ -34,7 +34,7 @@ func (r *MemoryUsersRepo) Create(_ context.Context, username string, hash []byte
 	}
 
 	user := domain.User{Id: hex.EncodeToString(b), Username: username}
-	r.db.Users[key] = storage.UserRecord{User: user, PasswordHash: hash}
+	r.db.Users[key] = memorystorage.UserRecord{User: user, PasswordHash: hash}
 	return user, nil
 }
 

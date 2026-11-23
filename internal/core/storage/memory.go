@@ -1,10 +1,10 @@
-package storage
+package memorystorage
 
 import (
 	"sync"
 	"time"
 
-	"github.com/inraise/asperitas/internal/domain"
+	"github.com/inraise/asperitas/internal/core/domain"
 )
 
 type UserRecord struct {

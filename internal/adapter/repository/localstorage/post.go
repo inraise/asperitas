@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/inraise/asperitas/internal/domain"
-	"github.com/inraise/asperitas/internal/storage"
+	"github.com/inraise/asperitas/internal/core/domain"
+	memorystorage "github.com/inraise/asperitas/internal/core/storage"
 )
 
 type MemoryPostRepo struct {
-	db *storage.Storage
+	db *memorystorage.Storage
 }
 
-func NewMemoryPostRepo(db *storage.Storage) *MemoryPostRepo {
+func NewMemoryPostRepo(db *memorystorage.Storage) *MemoryPostRepo {
 	return &MemoryPostRepo{
 		db: db,
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/inraise/asperitas/internal/domain"
+	"github.com/inraise/asperitas/internal/core/domain"
 )
 
 type PostRepository interface {

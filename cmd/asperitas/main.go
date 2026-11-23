@@ -9,15 +9,16 @@ import (
 
 	adapterhttp "github.com/inraise/asperitas/internal/adapter/handler/http"
 	"github.com/inraise/asperitas/internal/adapter/repository/localstorage"
-	"github.com/inraise/asperitas/internal/middleware"
-	"github.com/inraise/asperitas/internal/storage"
+	"github.com/inraise/asperitas/internal/core/middleware"
+	memorystorage "github.com/inraise/asperitas/internal/core/storage"
 	"github.com/inraise/asperitas/internal/usecase"
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	memDB := storage.NewStorage()
+	memDB := memorystorage.NewStorage()
+	
 	mux := http.NewServeMux()
 
 	secret := os.Getenv("JWT_SECRET")

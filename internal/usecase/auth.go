@@ -7,9 +7,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/inraise/asperitas/internal/core/domain"
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/inraise/asperitas/internal/domain"
 )
 
 type UsersRepository interface {

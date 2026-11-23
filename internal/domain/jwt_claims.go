@@ -1,7 +1,8 @@
 package domain
 
+import "github.com/golang-jwt/jwt/v5"
+
 type JwtClaims struct {
-	User User `json:"user" validate:"required"`
-	Iat  int  `json:"iat" validate:"required"`
-	Exp  int  `json:"exp" validate:"required"`
+	User User `json:"user"`
+	jwt.RegisteredClaims
 }

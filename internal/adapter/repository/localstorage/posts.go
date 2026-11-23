@@ -39,3 +39,11 @@ func (r *MemoryPostsRepo) GetByCategory(ctx context.Context, category string) (d
 
 	return out, nil
 }
+
+func (r *MemoryPostsRepo) CreatePost(_ context.Context, post domain.Post) error {
+	r.db.Mu.Lock()
+	defer r.db.Mu.Unlock()
+
+	r.db.Posts = append(r.db.Posts, post)
+	return nil
+}

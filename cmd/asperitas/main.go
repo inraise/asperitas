@@ -9,6 +9,7 @@ import (
 
 	adapterhttp "github.com/inraise/asperitas/internal/adapter/handler/http"
 	"github.com/inraise/asperitas/internal/adapter/repository/localstorage"
+	"github.com/inraise/asperitas/internal/middleware"
 	"github.com/inraise/asperitas/internal/storage"
 	"github.com/inraise/asperitas/internal/usecase"
 )
@@ -43,17 +44,21 @@ func main() {
 
 	mux.Handle("/", webHandler)
 
-	mux.HandleFunc("/api/posts", postsHandler.GetAll)
-	mux.HandleFunc("/api/posts/", postsHandler.GetAll)
-	mux.HandleFunc("/api/posts/{category}", postsHandler.GetByCategory)
+	auth := middleware.AuthMiddleware([]byte(secret))
+
+	mux.HandleFunc("GET /api/posts", postsHandler.GetAll)
+	mux.HandleFunc("GET /api/posts/", postsHandler.GetAll)
+	mux.Handle("POST /api/posts", auth(http.HandlerFunc(postsHandler.Create)))
+	mux.Handle("POST /api/posts/", auth(http.HandlerFunc(postsHandler.Create)))
+	mux.HandleFunc("GET /api/posts/{category}", postsHandler.GetByCategory)
 
 	mux.Handle("/api/post/{postId}", postHandler)
-	
+
 	mux.HandleFunc("POST /api/register", authHandler.Register)
 	mux.HandleFunc("POST /api/login", authHandler.Login)
 
 	fmt.Println("server start")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", middleware.LogMiddleware(mux)); err != nil {
 		fmt.Println("server error:", err)
 	}
 }

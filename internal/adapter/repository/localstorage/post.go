@@ -19,15 +19,15 @@ func NewMemoryPostRepo(db *storage.Storage) *MemoryPostRepo {
 }
 
 func (r *MemoryPostRepo) GetPost(_ context.Context, postId string) (*domain.Post, error) {
-	r.db.Mu.RLock()
-	defer r.db.Mu.RUnlock()
+	r.db.Mu.Lock()
+	defer r.db.Mu.Unlock()
 
-	for i, p := range r.db.Posts {
-		if p.Id == postId {
-			r.db.Posts[i].Views += 1
+	for i := range r.db.Posts {
+		if r.db.Posts[i].Id == postId {
+			r.db.Posts[i].Views++
+			p := r.db.Posts[i]
 			return &p, nil
 		}
 	}
-
 	return nil, fmt.Errorf("don't find post")
 }

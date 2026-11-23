@@ -26,11 +26,6 @@ func NewAuthUseCase(repo UsersRepository, secret []byte) *AuthUseCase {
 	return &AuthUseCase{repo: repo, secret: secret}
 }
 
-type claims struct {
-	User domain.User `json:"user"`
-	jwt.RegisteredClaims
-}
-
 func (u *AuthUseCase) Register(ctx context.Context, c domain.Credentials) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -47,7 +42,7 @@ func (u *AuthUseCase) Register(ctx context.Context, c domain.Credentials) (strin
 
 func (u *AuthUseCase) issueToken(user domain.User) (string, error) {
 	now := time.Now()
-	cl := claims{
+	cl := domain.JwtClaims{
 		User: user,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),

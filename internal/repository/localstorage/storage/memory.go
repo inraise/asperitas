@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/inraise/asperitas/internal/core/domain"
+	"github.com/inraise/asperitas/internal/domain"
 )
 
 type UserRecord struct {

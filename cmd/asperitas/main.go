@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"os"
 
-	adapterhttp "github.com/inraise/asperitas/internal/adapter/handler/http"
-	"github.com/inraise/asperitas/internal/adapter/repository/localstorage"
-	"github.com/inraise/asperitas/internal/core/middleware"
-	memorystorage "github.com/inraise/asperitas/internal/core/storage"
+	"github.com/inraise/asperitas/internal/controller/http/middleware"
+	adapterhttp "github.com/inraise/asperitas/internal/controller/http/v1"
+	adapterweb "github.com/inraise/asperitas/internal/controller/http/web"
+	"github.com/inraise/asperitas/internal/repository/localstorage"
+	memorystorage "github.com/inraise/asperitas/internal/repository/localstorage/storage"
 	"github.com/inraise/asperitas/internal/usecase"
 )
 
@@ -18,7 +19,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	memDB := memorystorage.NewStorage()
-	
+
 	mux := http.NewServeMux()
 
 	secret := os.Getenv("JWT_SECRET")
@@ -26,7 +27,7 @@ func main() {
 		log.Fatal("JWT_SECRET is not set")
 	}
 
-	webHandler := adapterhttp.NewWebHandler()
+	webHandler := adapterweb.NewWebHandler()
 
 	usersRepo := localstorage.NewMemoryUsersRepo(memDB)
 	authUseCase := usecase.NewAuthUseCase(usersRepo, []byte(secret))
@@ -43,7 +44,7 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	mux.Handle("/", webHandler)
+	mux.Handle("/{$}", webHandler)
 
 	auth := middleware.AuthMiddleware([]byte(secret))
 

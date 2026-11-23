@@ -1,4 +1,4 @@
-package adapterhttp
+package adapterweb
 
 import (
 	"net/http"

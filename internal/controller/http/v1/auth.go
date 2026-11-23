@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
-	"github.com/inraise/asperitas/internal/core/domain"
+	"github.com/inraise/asperitas/internal/domain"
 	"github.com/inraise/asperitas/internal/usecase"
 )
 

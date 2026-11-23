@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/inraise/asperitas/internal/core/domain"
+	"github.com/inraise/asperitas/internal/domain"
 )
 
 type PostsRepository interface {

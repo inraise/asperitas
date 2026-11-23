@@ -3,8 +3,8 @@ package localstorage
 import (
 	"context"
 
-	"github.com/inraise/asperitas/internal/core/domain"
-	memorystorage "github.com/inraise/asperitas/internal/core/storage"
+	"github.com/inraise/asperitas/internal/domain"
+	memorystorage "github.com/inraise/asperitas/internal/repository/localstorage/storage"
 )
 
 type MemoryPostsRepo struct {

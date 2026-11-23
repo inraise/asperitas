@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/inraise/asperitas/internal/core/domain"
+	"github.com/inraise/asperitas/internal/domain"
 	"golang.org/x/crypto/bcrypt"
 )
 

@@ -14,7 +14,7 @@ type Post struct {
 	Views            int    `json:"views" validate:"required"`
 	UpvotePercentage int    `json:"upvotePercentage" validate:"required,min=0,max=100"`
 
-	Type string  `json:"type" validate:"required"`
+	Type string  `json:"type" validate:"required,oneof=text link"`
 	Text *string `json:"text,omitempty"`
 	Url  *string `json:"url,omitempty"`
 }

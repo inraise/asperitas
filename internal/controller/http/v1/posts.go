@@ -23,7 +23,11 @@ type PostsHandler struct {
 }
 
 func NewPostsHandler(ctx context.Context, uc *usecase.PostsUseCase) *PostsHandler {
-	return &PostsHandler{uc: uc, ctx: ctx, validate: newValidator()}
+	return &PostsHandler{
+		uc:       uc,
+		ctx:      ctx,
+		validate: newValidator(),
+	}
 }
 
 func (h *PostsHandler) GetAll(w http.ResponseWriter, r *http.Request) {

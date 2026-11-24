@@ -19,18 +19,18 @@ func NewPostHandler(ctx context.Context, uc *usecase.PostUseCase) *PostHandler {
 	}
 }
 
-func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		query :=  r.PathValue("postId")
-		post, err := h.uc.GetPost(h.ctx, query)
-		if err != nil {
-			writeJSON(w, 404, err)
-			return
-		}
-
-		writeJSON(w, 200, post)
-	default:
-		http.Error(w, "method not allowed", 405)
+func (h *PostHandler) GetPost(w http.ResponseWriter, r *http.Request) {
+	query := r.PathValue("postId")
+	post, err := h.uc.GetPost(h.ctx, query)
+	if err != nil {
+		writeJSON(w, 404, err)
+		return
 	}
+
+	if post.Type == "link" {
+		http.Redirect(w, r, *post.Url, 200)
+		return
+	}
+
+	writeJSON(w, 200, post)
 }

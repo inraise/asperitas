@@ -43,21 +43,27 @@ func main() {
 
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
-
 	mux.Handle("/{$}", webHandler)
 
+	// Аутентификация
 	auth := middleware.AuthMiddleware([]byte(secret))
+	mux.HandleFunc("POST /api/register", authHandler.Register)
+	mux.HandleFunc("POST /api/login", authHandler.Login)
 
+	// Посты
 	mux.HandleFunc("GET /api/posts", postsHandler.GetAll)
 	mux.HandleFunc("GET /api/posts/", postsHandler.GetAll)
 	mux.Handle("POST /api/posts", auth(http.HandlerFunc(postsHandler.Create)))
 	mux.Handle("POST /api/posts/", auth(http.HandlerFunc(postsHandler.Create)))
+
 	mux.HandleFunc("GET /api/posts/{category}", postsHandler.GetByCategory)
+	//
+	mux.HandleFunc("/api/post/{postId}", postHandler.GetPost)
+	//
 
-	mux.Handle("/api/post/{postId}", postHandler)
+	// Комментарии
 
-	mux.HandleFunc("POST /api/register", authHandler.Register)
-	mux.HandleFunc("POST /api/login", authHandler.Login)
+	// Голоса
 
 	fmt.Println("server start")
 	if err := http.ListenAndServe(":8080", middleware.LogMiddleware(mux)); err != nil {

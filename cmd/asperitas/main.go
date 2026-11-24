@@ -41,6 +41,10 @@ func main() {
 	postUseCase := usecase.NewPostUseCase(postRepo)
 	postHandler := adapterhttp.NewPostHandler(ctx, postUseCase)
 
+	userRepo := localstorage.NewMemoryUserRepo(memDB)
+	userUseCase := usecase.NewUserUseCase(userRepo)
+	userHandler := adapterhttp.NewUserHandler(ctx, userUseCase)
+
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 	mux.Handle("/{$}", webHandler)
@@ -57,7 +61,7 @@ func main() {
 	mux.Handle("POST /api/posts/", auth(http.HandlerFunc(postsHandler.Create)))
 
 	mux.HandleFunc("GET /api/posts/{category}", postsHandler.GetByCategory)
-	//
+	mux.HandleFunc("GET /api/user/{username}", userHandler.GetUserPosts)
 	mux.HandleFunc("/api/post/{postId}", postHandler.GetPost)
 	//
 

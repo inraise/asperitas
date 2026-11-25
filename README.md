@@ -14,14 +14,14 @@ make test
 ## Структура
 
 ```
-cmd/asperitas                      точка входа: конфиг, http.Server, graceful shutdown
-internal/app                       сборка зависимостей и маршрутов (используется и в тестах)
-internal/domain                    сущности и бизнес-правила (голоса, права, ошибки)
-internal/usecase                   сценарии: AuthUseCase, PostUseCase
-internal/repository/localstorage   in-memory репозитории (PostRepo, UserRepo)
-internal/controller/http/v1        HTTP-хендлеры, валидация, формат ошибок
-internal/controller/http/middleware  JWT-авторизация, логирование
-internal/controller/http/web       index.html для клиентских маршрутов, favicon, manifest
+cmd/asperitas                       точка входа: конфиг, http.Server, graceful shutdown
+internal/app                        сборка зависимостей и маршрутов (используется и в тестах)
+internal/domain                     сущности и бизнес-правила (голоса, права, ошибки)
+internal/usecase                    сценарии: AuthUseCase, PostUseCase
+internal/repository/localstorage    in-memory репозитории (PostRepo, UserRepo)
+internal/controller/http/v1         HTTP-хендлеры, валидация, формат ошибок
+internal/controller/http/middleware JWT-авторизация, логирование
+internal/controller/http/web        index.html для клиентских маршрутов, favicon, manifest
 ```
 
 ## API

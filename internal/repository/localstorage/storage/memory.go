@@ -19,7 +19,7 @@ type Storage struct {
 
 func NewStorage() *Storage {
 	return &Storage{
-		Users: make(map[string]UserRecord),
 		Posts: make(domain.PostList, 0),
+		Users: make(map[string]UserRecord),
 	}
 }

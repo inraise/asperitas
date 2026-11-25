@@ -1,118 +1,129 @@
-package adapterhttp
+package v1
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/inraise/asperitas/internal/controller/http/middleware"
 	"github.com/inraise/asperitas/internal/domain"
 	"github.com/inraise/asperitas/internal/usecase"
 )
 
-type PostsHandler struct {
-	uc       *usecase.PostsUseCase
-	ctx      context.Context
+type PostHandler struct {
+	uc       *usecase.PostUseCase
 	validate *validator.Validate
 }
 
-func NewPostsHandler(ctx context.Context, uc *usecase.PostsUseCase) *PostsHandler {
-	return &PostsHandler{
-		uc:       uc,
-		ctx:      ctx,
-		validate: newValidator(),
-	}
+func NewPostHandler(uc *usecase.PostUseCase) *PostHandler {
+	return &PostHandler{uc: uc, validate: newValidator()}
 }
 
-func (h *PostsHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	postsList, err := h.uc.GetPosts(h.ctx)
+func (h *PostHandler) List(w http.ResponseWriter, r *http.Request) {
+	posts, err := h.uc.List(r.Context())
 	if err != nil {
-		writeJSON(w, 500, err)
+		fail(w, "list posts", err)
 		return
 	}
-
-	writeJSON(w, 200, postsList)
+	writeJSON(w, http.StatusOK, posts)
 }
 
-func (h *PostsHandler) GetByCategory(w http.ResponseWriter, r *http.Request) {
-	category := r.PathValue("category")
-	postsList, err := h.uc.GetByCategory(h.ctx, category)
+func (h *PostHandler) ListByCategory(w http.ResponseWriter, r *http.Request) {
+	posts, err := h.uc.ListByCategory(r.Context(), r.PathValue("category"))
 	if err != nil {
-		writeJSON(w, 500, err)
+		fail(w, "list posts by category", err)
 		return
 	}
-
-	writeJSON(w, 200, postsList)
+	writeJSON(w, http.StatusOK, posts)
 }
 
-func (h *PostsHandler) Create(w http.ResponseWriter, r *http.Request) {
-	user, ok := middleware.UserFromContext(r.Context())
+func (h *PostHandler) ListByUser(w http.ResponseWriter, r *http.Request) {
+	username := r.PathValue("username")
+	if !domain.ValidUsername(username) {
+		writeError(w, http.StatusBadRequest, "bad request")
+		return
+	}
+	posts, err := h.uc.ListByUser(r.Context(), username)
+	if err != nil {
+		fail(w, "list posts by user", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, posts)
+}
+
+func (h *PostHandler) Get(w http.ResponseWriter, r *http.Request) {
+	post, err := h.uc.Get(r.Context(), r.PathValue("postId"))
+	if err != nil {
+		fail(w, "get post", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, post)
+}
+
+func (h *PostHandler) Create(w http.ResponseWriter, r *http.Request) {
+	user, ok := currentUser(w, r)
 	if !ok {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"message": "unauthorized"})
 		return
 	}
 
 	var req domain.PostRequest
-	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"message": "bad request"})
+	if !decodeJSON(w, r, &req) {
 		return
 	}
-
 	if errs := h.validatePost(req); len(errs) > 0 {
-		writeValidation(w, errs...)
+		writeValidation(w, errs)
 		return
 	}
 
-	post, err := h.uc.CreatePost(r.Context(), user, req)
+	post, err := h.uc.Create(r.Context(), user, req)
 	if err != nil {
-		log.Printf("create post: %v", err)
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"message": "internal error"})
+		fail(w, "create post", err)
 		return
 	}
 	writeJSON(w, http.StatusCreated, post)
 }
 
-func (h *PostsHandler) validatePost(req domain.PostRequest) []fieldError {
-	var out []fieldError
-
-	if err := h.validate.Struct(req); err != nil {
-		var verrs validator.ValidationErrors
-		if errors.As(err, &verrs) {
-			for _, fe := range verrs {
-				out = append(out, fieldError{"body", fe.Field(), message(fe)})
-			}
-		}
+func (h *PostHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	user, ok := currentUser(w, r)
+	if !ok {
+		return
 	}
+	if err := h.uc.Delete(r.Context(), user, r.PathValue("postId")); err != nil {
+		fail(w, "delete post", err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"message": "success"})
+}
+
+func (h *PostHandler) validatePost(req domain.PostRequest) []fieldError {
+	errs := validateStruct(h.validate, req)
 
 	if strings.TrimSpace(req.Title) != req.Title {
-		out = append(out, fieldError{"body", "title", "must not start or end with whitespace"})
+		errs = append(errs, fieldError{"body", "title", "must not start or end with whitespace"})
 	}
 
 	switch req.Type {
-	case "text":
+	case domain.PostTypeText:
 		if req.Text == nil {
-			out = append(out, fieldError{"body", "text", "is required"})
+			errs = append(errs, fieldError{"body", "text", "is required"})
 		} else if utf8.RuneCountInString(*req.Text) < 4 {
-			out = append(out, fieldError{"body", "text", "must be at least 4 characters long"})
+			errs = append(errs, fieldError{"body", "text", "must be at least 4 characters long"})
 		}
-	case "link":
+	case domain.PostTypeLink:
 		if req.Url == nil {
-			out = append(out, fieldError{"body", "url", "is required"})
-		} else if u, err := url.ParseRequestURI(*req.Url); err != nil || u.Scheme == "" || u.Host == "" {
-			out = append(out, fieldError{"body", "url", "must be a valid absolute URL"})
+			errs = append(errs, fieldError{"body", "url", "is required"})
+		} else if !validWebURL(*req.Url) {
+			errs = append(errs, fieldError{"body", "url", "must be an absolute http(s) URL"})
 		}
 	}
-	return out
+	return errs
 }
 
-func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v)
+func validWebURL(s string) bool {
+	u, err := url.ParseRequestURI(s)
+	if err != nil || u.Host == "" {
+		return false
+	}
+	return u.Scheme == "http" || u.Scheme == "https"
 }

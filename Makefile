@@ -3,3 +3,6 @@ export
 
 run:
 	@ go run cmd/asperitas/main.go
+
+test:
+	@ go test -race ./...
